@@ -10,7 +10,7 @@ class AiResult {
 
 class GeminiService {
   static const _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
   static const _systemPrompt = '''
 당신은 따뜻하고 공감 능력이 뛰어난 감정 일기 상담사입니다.
 사용자가 오늘 있었던 일을 일기로 적으면:
