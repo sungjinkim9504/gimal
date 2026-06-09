@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 감정 일기 — 최종 발표</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #0d0d1a; color: #fff;
+      height: 100vh; overflow: hidden; user-select: none;
+    }
+    .slides { width: 100%; height: 100vh; position: relative; }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 48px 80px;
+      opacity: 0; transform: translateX(60px);
+      transition: opacity .4s ease, transform .4s ease;
+      pointer-events: none;
+    }
+    .slide.active  { opacity: 1; transform: translateX(0);    pointer-events: all; }
+    .slide.leaving { opacity: 0; transform: translateX(-60px); }
+
+    .label { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: #a78bfa; margin-bottom: 20px; }
+    h2 { font-size: 34px; font-weight: 700; margin-bottom: 28px; text-align: center; }
+    .accent { color: #a78bfa; }
+    .s-diagram { padding: 20px 36px !important; }
+
+    /* 타이틀 */
+    .s-title { background: radial-gradient(ellipse at 60% 40%, #1e1050 0%, #0d0d1a 70%); }
+    .big-emoji { font-size: 68px; margin-bottom: 20px; }
+    .title-main {
+      font-size: 58px; font-weight: 900;
+      background: linear-gradient(135deg, #a78bfa 30%, #f0c4ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+    }
+    .title-sub { font-size: 17px; color: rgba(255,255,255,.5); font-weight: 300; }
+    .badge { margin-top: 36px; padding: 8px 22px; background: rgba(167,139,250,.12); border: 1px solid rgba(167,139,250,.35); border-radius: 999px; font-size: 13px; color: #c4b5fd; letter-spacing: 1px; }
+    .name-tag { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,.28); }
+
+    /* 카드 */
+    .cards { display: flex; gap: 18px; width: 100%; max-width: 900px; }
+    .card { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 26px 22px; }
+    .card.hi { border-color: rgba(167,139,250,.5); background: rgba(167,139,250,.07); }
+    .card-icon { font-size: 28px; margin-bottom: 10px; }
+    .card-head { font-size: 14px; font-weight: 700; color: #e0b3ff; margin-bottom: 8px; }
+    .card-body { font-size: 13px; color: rgba(255,255,255,.6); line-height: 1.7; }
+
+    /* 시나리오 */
+    .scenario { width: 100%; max-width: 780px; }
+    .persona-chip { display: inline-block; margin-bottom: 18px; padding: 6px 18px; background: rgba(167,139,250,.12); border: 1px solid rgba(167,139,250,.3); border-radius: 999px; font-size: 13px; color: #c4b5fd; }
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 20px; }
+    .step.hi { border-color: rgba(167,139,250,.45); background: rgba(167,139,250,.07); }
+    .step-num { font-size: 18px; font-weight: 900; color: #a78bfa; min-width: 24px; }
+    .step-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .step-desc { font-size: 12.5px; color: rgba(255,255,255,.55); line-height: 1.5; }
+
+    /* 다이어그램 */
+    .mermaid-box { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 18px 24px; width: 100%; }
+    .mermaid svg { width: 100% !important; }
+
+    /* 아키텍처 */
+    .arch-layout { display: flex; gap: 18px; width: 100%; max-width: 1060px; align-items: flex-start; }
+    .why-list { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .why-item { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 11px 15px; }
+    .why-item.ai { border-color: rgba(66,133,244,.4); background: rgba(66,133,244,.06); }
+    .why-tech { font-size: 13px; font-weight: 700; color: #e0b3ff; margin-bottom: 2px; }
+    .why-reason { font-size: 11.5px; color: rgba(255,255,255,.5); line-height: 1.5; }
+
+    /* 테스트 결과 */
+    .test-layout { display: flex; gap: 24px; width: 100%; max-width: 900px; }
+    .test-col { flex: 1; }
+    .test-section-title { font-size: 12px; letter-spacing: 3px; color: #a78bfa; margin-bottom: 12px; }
+    .test-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; margin-bottom: 8px; font-size: 13px; }
+    .test-pass { color: #86efac; font-weight: 700; font-size: 12px; }
+    .req-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+    .req-table td { padding: 9px 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); font-size: 13px; }
+    .req-table td:first-child { border-radius: 8px 0 0 8px; color: #a78bfa; font-weight: 700; white-space: nowrap; }
+    .req-table td:last-child { border-radius: 0 8px 8px 0; }
+
+    /* 마무리 */
+    .s-close { background: radial-gradient(ellipse at 40% 60%, #1a0a40 0%, #0d0d1a 70%); }
+    .close-emoji { font-size: 60px; margin-bottom: 18px; }
+    .close-title { font-size: 44px; font-weight: 900; background: linear-gradient(135deg, #a78bfa, #f0c4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 14px; }
+    .close-sub { font-size: 16px; color: rgba(255,255,255,.4); margin-bottom: 30px; }
+    .chips { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .chip { padding: 8px 20px; background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.3); border-radius: 999px; font-size: 13px; color: #c4b5fd; }
+    .chip.done { background: rgba(74,222,128,.1); border-color: rgba(74,222,128,.35); color: #86efac; }
+
+    /* 네비 */
+    .nav-dots { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 200; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.25); cursor: pointer; transition: all .3s; }
+    .dot.on { background: #a78bfa; transform: scale(1.4); }
+    .hint { position: fixed; bottom: 22px; right: 34px; font-size: 11px; color: rgba(255,255,255,.18); pointer-events: none; }
+    .slide-num { position: fixed; top: 22px; right: 34px; font-size: 12px; color: rgba(255,255,255,.22); }
+    .final-badge { position: fixed; top: 22px; left: 34px; font-size: 11px; color: rgba(167,139,250,.5); letter-spacing: 2px; }
+  </style>
+</head>
+<body>
+<div class="slides">
+
+  <!-- ① 타이틀 -->
+  <section class="slide s-title active">
+    <div class="big-emoji">📔</div>
+    <div class="title-main">AI 감정 일기</div>
+    <div class="title-sub">오늘 하루를 기록하면, AI가 당신의 감정을 읽습니다</div>
+    <div class="badge">Flutter · Gemini AI · 최종 발표 · 2026</div>
+    <div class="name-tag">김성진 · Project Gimal</div>
+  </section>
+
+  <!-- ② 문제 정의 & 비전 -->
+  <section class="slide">
+    <div class="label">문제 정의 &amp; 비전</div>
+    <h2>혼자 쓰는 일기는 <span class="accent">공허하다</span></h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">😶</div>
+        <div class="card-head">문제</div>
+        <div class="card-body">감정을 글로 적어도 아무 반응이 없다.<br>공허하고 허전한 느낌.</div>
+      </div>
+      <div class="card hi">
+        <div class="card-icon">✨</div>
+        <div class="card-head">한 줄 가치 제안</div>
+        <div class="card-body" style="font-size:14px; color:#e0b3ff; font-weight:700; line-height:1.8;">"오늘 하루를 기록하면,<br>AI가 감정을 읽고<br>따뜻한 한마디를 건넨다"</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <div class="card-head">차별점</div>
+        <div class="card-body">AI가 감정을 <b>자동 감지</b>.<br>캘린더로 감정 흐름을<br>한눈에 파악.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 사용자 시나리오 -->
+  <section class="slide">
+    <div class="label">사용자 시나리오</div>
+    <h2>지은씨의 <span class="accent">하루</span></h2>
+    <div class="scenario">
+      <div class="persona-chip">👤 지은 (26세, 직장인) — "퇴근 후 감정을 정리하고 싶다"</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div><div class="step-title">캘린더 확인</div><div class="step-desc">지난 주 감정 이모지가 날짜별로 찍혀 있다.</div></div></div>
+        <div class="step hi"><div class="step-num">2</div><div><div class="step-title">일기 작성 → 저장</div><div class="step-desc">"오늘 발표가 잘 됐는데 왜 이렇게 긴장이 안 풀리지…"</div></div></div>
+        <div class="step hi"><div class="step-num">3</div><div><div class="step-title">AI 코멘트 수신 (핵심)</div><div class="step-desc">😌 "긴장 후 이완 — 잘 해냈지만 몸이 아직 긴장 상태예요. 따뜻한 차 한 잔 마셔 보세요."</div></div></div>
+        <div class="step"><div class="step-num">4</div><div><div class="step-title">캘린더 복귀</div><div class="step-desc">오늘 날짜에 😌 이모지가 찍힌다.</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 아키텍처 -->
+  <section class="slide s-diagram">
+    <div class="label">설계 · 아키텍처</div>
+    <h2 style="margin-bottom:16px;">Feature-first + <span class="accent">Riverpod</span></h2>
+    <div class="arch-layout">
+      <div class="mermaid-box" style="flex:2;">
+        <div class="mermaid">
+graph LR
+    U(["👤 사용자"])
+    S["📝 일기 작성"]
+    N["⚙️ DiaryNotifier\n(Riverpod)"]
+    DB[("💾 SharedPreferences")]
+    SVC["🌐 GeminiService"]
+    API["✨ Gemini API"]
+    D["📖 상세 화면\nAI 코멘트"]
+
+    U --> S --> N
+    N --> DB
+    N --> SVC --> API
+    API -->|"감정 이모지+조언"| N
+    N --> D
+
+    style U fill:#7c6fcd,stroke:none,color:#fff
+    style API fill:#4285f4,stroke:none,color:#fff
+    style DB fill:#1a3a1a,stroke:#4a7a4a,color:#aaffaa
+        </div>
+      </div>
+      <div class="why-list">
+        <div class="why-item"><div class="why-tech">🐦 Flutter</div><div class="why-reason">단일 코드로 Android·iOS·Web<br>혼자 개발 → 멀티플랫폼 필수</div></div>
+        <div class="why-item"><div class="why-tech">🔵 Riverpod 2.x</div><div class="why-reason">비동기 AI 호출을 FutureProvider로<br>타입 안전하게 처리</div></div>
+        <div class="why-item ai"><div class="why-tech">✨ Gemini API</div><div class="why-reason">무료 + 빠른 응답<br>Claude fallback 구현 완료</div></div>
+        <div class="why-item"><div class="why-tech">💾 SharedPreferences</div><div class="why-reason">서버 없이 로컬 저장<br>프라이버시 보장</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤ 구현 결과 & 테스트 -->
+  <section class="slide">
+    <div class="label">구현 결과 &amp; 테스트</div>
+    <h2>Must <span class="accent">100%</span> · Should <span class="accent">100%</span> · 테스트 <span class="accent">14개</span></h2>
+    <div class="test-layout">
+      <div class="test-col">
+        <div class="test-section-title">MUST 기능 (11/11)</div>
+        <div class="test-row">일기 작성·수정·삭제 <span class="test-pass">✅ PASS</span></div>
+        <div class="test-row">로컬 저장 (SharedPreferences) <span class="test-pass">✅ PASS</span></div>
+        <div class="test-row">캘린더 뷰 &amp; 감정 이모지 <span class="test-pass">✅ PASS</span></div>
+        <div class="test-row">AI 감정 분석 자동 실행 <span class="test-pass">✅ PASS</span></div>
+        <div class="test-row">AI 로딩 상태 표시 <span class="test-pass">✅ PASS</span></div>
+      </div>
+      <div class="test-col">
+        <div class="test-section-title">단위·통합 테스트 (14개)</div>
+        <div class="test-row">DiaryEntry 직렬화 (4개) <span class="test-pass">✅ ALL PASS</span></div>
+        <div class="test-row">copyWith 검증 (2개) <span class="test-pass">✅ ALL PASS</span></div>
+        <div class="test-row">Gemini 응답 파싱 (5개) <span class="test-pass">✅ ALL PASS</span></div>
+        <div class="test-row">CRUD 시나리오 (3개) <span class="test-pass">✅ ALL PASS</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 데모 -->
+  <section class="slide s-diagram">
+    <div class="label">LIVE DEMO</div>
+    <h2 style="margin-bottom:16px;">직접 <span class="accent">써보세요</span></h2>
+    <div class="mermaid-box" style="max-width:700px; padding:28px 36px;">
+      <div class="mermaid">
+sequenceDiagram
+    participant 사용자
+    participant 앱
+    participant Gemini
+
+    사용자->>앱: 일기 작성 후 저장
+    앱->>앱: SharedPreferences 저장
+    앱->>사용자: 상세 화면 이동
+    앱->>Gemini: 감정 분석 요청
+    Gemini-->>앱: 감정 이모지 + 조언
+    앱->>사용자: AI 코멘트 표시
+    앱->>사용자: 캘린더 이모지 업데이트
+      </div>
+    </div>
+    <div style="margin-top:20px; font-size:13px; color:rgba(255,255,255,.4);">flutter run -d chrome</div>
+  </section>
+
+  <!-- ⑦ 마무리 -->
+  <section class="slide s-close">
+    <div class="close-emoji">🙋</div>
+    <div class="close-title">감사합니다</div>
+    <div class="close-sub">김성진 · AI 감정 일기 · 진행률 100%</div>
+    <div class="chips">
+      <div class="chip done">✅ Must 11/11</div>
+      <div class="chip done">✅ Should 4/4</div>
+      <div class="chip done">✅ 테스트 14개</div>
+      <div class="chip done">✅ 문서화 완료</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav-dots" id="nav"></div>
+<div class="hint">← → 또는 클릭</div>
+<div class="slide-num" id="snum">1 / 7</div>
+<div class="final-badge">FINAL</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+  const slides = document.querySelectorAll('.slide');
+  const nav    = document.getElementById('nav');
+  const snum   = document.getElementById('snum');
+  let cur = 0, animating = false;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.onclick = e => { e.stopPropagation(); goTo(i); };
+    nav.appendChild(d);
+  });
+
+  function goTo(n) {
+    if (animating || n === cur) return;
+    animating = true;
+    slides[cur].classList.add('leaving');
+    setTimeout(() => {
+      slides[cur].classList.remove('active', 'leaving');
+      cur = ((n % slides.length) + slides.length) % slides.length;
+      slides[cur].classList.add('active');
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+      snum.textContent = (cur + 1) + ' / ' + slides.length;
+      animating = false;
+    }, 400);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goTo(cur + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    goTo(cur - 1);
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.dot')) goTo(cur + 1); });
+</script>
+</body>
+</html>
